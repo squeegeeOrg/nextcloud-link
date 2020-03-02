@@ -24,7 +24,7 @@ services:
     links: 
       - maildev:maildev
   database:
-    image: mysql:5.7
+    image: mariadb
     restart: always
     volumes:
       - databaseStore:/var/lib/mysql
