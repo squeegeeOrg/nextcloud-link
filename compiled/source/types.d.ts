@@ -2,9 +2,10 @@
 import { OcsConnection } from './ocs/ocs-connection';
 import * as Stream from 'stream';
 import * as Webdav from 'webdav-client';
-import { Tag } from './properties/tag';
 export { Tag } from './properties/tag';
 import { OcsSharePermissions, OcsEditUserField, OcsShareType, OcsActivity, OcsNewUser, OcsShare, OcsUser } from './ocs/types';
+import { NextcloudClient } from './client';
+import { PropertiesClient } from './properties/PropertiesClient';
 export * from './ocs/types';
 export declare type AsyncFunction = (...parameters: any[]) => Promise<any>;
 export declare type FileDetails = Webdav.ConnectionReaddirComplexResult;
@@ -24,7 +25,7 @@ export interface NextcloudClientInterface extends NextcloudClientProperties {
     pipeStream(path: string, stream: Stream.Readable): Promise<void>;
     rename(fromFullPath: string, toFileName: string): Promise<void>;
     move(fromFullPath: string, toFullPath: string): Promise<void>;
-    as(username: string, password: string): NextcloudClientInterface;
+    as(username: string, password: string): NextcloudClient;
     createFolderHierarchy(path: string): Promise<void>;
     put(path: string, content: Webdav.ContentType): Promise<void>;
     getWriteStream(path: string): Promise<Webdav.Stream>;
@@ -37,13 +38,7 @@ export interface NextcloudClientInterface extends NextcloudClientProperties {
     get(path: string): Promise<string | Buffer>;
     getCreatorByFileId(fileId: number | string): Promise<string>;
     getCreatorByPath(path: string): Promise<string>;
-    properties: {
-        getFileId(path: string): Promise<string>;
-        createTag(tagName: string): Promise<Tag>;
-        addTag(fileID: number | string, tag: Tag): Promise<void>;
-        removeTag(fileId: number | string, tag: Tag): Promise<void>;
-        getTags(fileId: number | string, tag: Tag): Promise<Tag[]>;
-    };
+    properties: PropertiesClient;
     activities: {
         get: (fileId: number | string, sort?: 'asc' | 'desc', limit?: number, sinceActivityId?: number) => Promise<OcsActivity[]>;
     };
