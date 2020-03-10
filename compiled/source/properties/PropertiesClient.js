@@ -37,9 +37,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = require("axios");
 var tag_1 = require("./tag");
-var multiStatusResponse_1 = require("./multiStatusResponse");
+// import {MultiStatusResponse} from './multiStatusResponse';
 var fileProps_1 = require("./fileProps");
 var errors_1 = require("../errors");
+var multiStatusResponse_1 = require("./multiStatusResponse");
+var NOT_FOUND = "404";
+var TAG_DISPLAY_NAME = "oc:display-name";
 var PropertiesClient = /** @class */ (function () {
     function PropertiesClient(baseURL, username, password) {
         var _this = this;
@@ -47,23 +50,32 @@ var PropertiesClient = /** @class */ (function () {
         this.username = username;
         this.getUserFilePath = function (path) { return "files/" + _this.username + path; };
         this.getFileId = function (path) { return __awaiter(_this, void 0, void 0, function () {
-            var fileprops, fileId;
+            var fileprops, fileId, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.getFileProps(path)];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.getFileProps(path)];
                     case 1:
                         fileprops = _a.sent();
-                        fileId = fileprops.property('oc:fileid');
+                        fileId = fileprops.getProperty("oc:fileid");
                         return [2 /*return*/, fileId];
+                    case 2:
+                        error_1 = _a.sent();
+                        if (error_1 instanceof errors_1.NotFoundError) {
+                            return [2 /*return*/];
+                        }
+                        throw error_1;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); };
         this.addTag = function (fileId, tag) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.connection({
-                            method: 'PUT',
-                            url: "/systemtags-relations/files/" + fileId + "/" + tag.id,
+                    case 0: return [4 /*yield*/, this.connection.request({
+                            method: "PUT",
+                            url: "/systemtags-relations/files/" + fileId + "/" + tag.id
                         })];
                     case 1:
                         _a.sent();
@@ -74,9 +86,9 @@ var PropertiesClient = /** @class */ (function () {
         this.removeTag = function (fileId, tag) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.connection({
-                            method: 'DELETE',
-                            url: "/systemtags-relations/files/" + fileId + "/" + tag.id,
+                    case 0: return [4 /*yield*/, this.connection.request({
+                            method: "DELETE",
+                            url: "/systemtags-relations/files/" + fileId + "/" + tag.id
                         })];
                     case 1:
                         _a.sent();
@@ -89,16 +101,19 @@ var PropertiesClient = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        url = "/systemtags-relations/files" + fileId;
-                        return [4 /*yield*/, this.callPropFind(url, ['oc:display-name', 'oc:id'])];
+                        url = "/systemtags-relations/files/" + fileId;
+                        return [4 /*yield*/, this.callPropFind(url, [
+                                "oc:display-name",
+                                "oc:id"
+                            ])];
                     case 1:
                         responses = _a.sent();
                         return [2 /*return*/, responses.reduce(function (carry, item) {
                                 if (item.propStat.length === 0 ||
-                                    item.propStat[0].status !== 'HTTP/1.1 200 OK') {
+                                    item.propStat[0].status !== "HTTP/1.1 200 OK") {
                                     return carry;
                                 }
-                                var tag = new tag_1.Tag(item.propStat[0].properties['oc:id'], item.propStat[0].properties['oc:display-name']);
+                                var tag = new tag_1.Tag(item.propStat[0].properties["oc:id"], item.propStat[0].properties["oc:display-name"]);
                                 carry.push(tag);
                                 return carry;
                             }, [])];
@@ -107,26 +122,26 @@ var PropertiesClient = /** @class */ (function () {
         }); };
         this.getFileProps = function (path, names) {
             if (names === void 0) { names = [
-                'd:getlastmodified',
-                'd:getetag',
-                'd:getcontenttype',
-                'd:resourcetype',
-                'oc:fileid',
-                'oc:permissions',
-                'oc:size',
-                'd:getcontentlength',
-                'nc:has-preview',
-                'nc:mount-type',
-                'nc:is-encrypted',
-                'ocs:share-permissions',
-                'oc:tags',
-                'oc:favorite',
-                'oc:comments-unread',
-                'oc:owner-id',
-                'oc:owner-display-name',
-                'oc:share-types',
-                'oc:share-types',
-                'oc:foreign-id',
+                "d:getlastmodified",
+                "d:getetag",
+                "d:getcontenttype",
+                "d:resourcetype",
+                "oc:fileid",
+                "oc:permissions",
+                "oc:size",
+                "d:getcontentlength",
+                "nc:has-preview",
+                "nc:mount-type",
+                "nc:is-encrypted",
+                "ocs:share-permissions",
+                "oc:tags",
+                "oc:favorite",
+                "oc:comments-unread",
+                "oc:owner-id",
+                "oc:owner-display-name",
+                "oc:share-types",
+                "oc:share-types",
+                "oc:foreign-id"
             ]; }
             return __awaiter(_this, void 0, void 0, function () {
                 var absolutePath, responses, response, props;
@@ -139,11 +154,11 @@ var PropertiesClient = /** @class */ (function () {
                             responses = _a.sent();
                             response = responses[0];
                             if (response.propStat.length === 0 ||
-                                response.propStat[0].status !== 'HTTP/1.1 200 OK') {
+                                response.propStat[0].status !== "HTTP/1.1 200 OK") {
                                 throw new errors_1.NotFoundError(absolutePath);
                             }
                             props = Object.keys(response.propStat[0].properties).reduce(function (carry, key) {
-                                var name = key.replace('{http://owncloud.org/ns}', '');
+                                var name = key.replace("{http://owncloud.org/ns}", "");
                                 carry[name] = response.propStat[0].properties[key];
                                 return carry;
                             }, {});
@@ -156,22 +171,23 @@ var PropertiesClient = /** @class */ (function () {
             var rawResponse, responses, response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.connection({
-                            method: 'PROPPATCH',
+                    case 0: return [4 /*yield*/, this.connection.request({
+                            // @ts-ignore axios doesn't have PROPPATCH method
+                            method: "PROPPATCH",
                             url: fileProps.path,
                             data: "<?xml version=\"1.0\"?>\n            <d:propertyupdate  xmlns:d=\"DAV:\" xmlns:oc=\"http://owncloud.org/ns\">\n            " + fileProps
                                 .dirty()
                                 .map(
                             // tslint:disable-next-line
                             function (prop) { return "<d:set>\n              <d:prop>\n                <" + prop.name + ">" + prop.value + "</" + prop.name + ">\n              </d:prop>\n            </d:set>"; })
-                                .join('') + "</d:propertyupdate>",
+                                .join("") + "</d:propertyupdate>"
                         })];
                     case 1:
                         rawResponse = _a.sent();
                         responses = this.parseMultiStatus(rawResponse.data);
                         response = responses[0];
                         if (response.propStat.length === 0 ||
-                            response.propStat[0].status !== 'HTTP/1.1 200 OK') {
+                            response.propStat[0].status !== "HTTP/1.1 200 OK") {
                             throw new Error("Can't update properties of file " + fileProps.path + ". " + response.propStat[0].status);
                         }
                         return [2 /*return*/];
@@ -184,19 +200,22 @@ var PropertiesClient = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.connection({
-                                method: 'PROPFIND',
+                        return [4 /*yield*/, this.connection.request({
+                                // @ts-ignore axios doesn't have PROPFIND method
+                                method: "PROPFIND",
                                 url: path,
                                 data: "<?xml version=\"1.0\"?>\n\t\t\t\t<d:propfind  xmlns:d=\"DAV:\"\n\t\t\t\t\txmlns:oc=\"http://owncloud.org/ns\"\n\t\t\t\t\txmlns:nc=\"http://nextcloud.org/ns\"\n\t\t\t\t\txmlns:ocs=\"http://open-collaboration-services.org/ns\">\n                <d:prop>\n                    " + 
                                 // tslint:disable-next-line
-                                names.map(function (name) { return "<" + name + " />"; }).join('') + "\n\t\t\t\t</d:prop>\n\t\t\t\t</d:propfind>",
+                                names.map(function (name) { return "<" + name + " />"; }).join("") + "\n\t\t\t\t</d:prop>\n\t\t\t\t</d:propfind>"
                             })];
                     case 1:
                         rawResponse = _a.sent();
                         return [2 /*return*/, this.parseMultiStatus(rawResponse.data)];
                     case 2:
                         err_1 = _a.sent();
-                        console.log(err_1);
+                        if (err_1 && err_1.response && err_1.response.status === 404) {
+                            throw new errors_1.NotFoundError(path);
+                        }
                         throw err_1;
                     case 3: return [2 /*return*/];
                 }
@@ -206,31 +225,121 @@ var PropertiesClient = /** @class */ (function () {
             var response, url, id;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.connection({
-                            method: 'POST',
-                            url: '/systemtags',
+                    case 0: return [4 /*yield*/, this.connection.request({
+                            method: "POST",
+                            url: "/systemtags",
                             data: {
                                 name: name,
                                 userVisible: true,
                                 userAssignable: true,
-                                canAssign: true,
-                            },
+                                canAssign: true
+                            }
                         })];
                     case 1:
                         response = _a.sent();
-                        url = response.headers['content-location'];
+                        url = response.headers["content-location"];
                         id = this.parseIdFromLocation(url);
                         return [2 /*return*/, new tag_1.Tag(id, name)];
                 }
             });
         }); };
+        this.getTag = function (tagId) { return __awaiter(_this, void 0, void 0, function () {
+            var response, tagName, err_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.callPropFind("/systemtags/" + tagId, [
+                                TAG_DISPLAY_NAME
+                            ])];
+                    case 1:
+                        response = _a.sent();
+                        if (response.length < 1) {
+                            return [2 /*return*/];
+                        }
+                        if (response[0].propStat.length < 1) {
+                            return [2 /*return*/];
+                        }
+                        if (!response[0].propStat[0].status) {
+                            return [2 /*return*/];
+                        }
+                        if (response[0].propStat[0].status.includes(NOT_FOUND)) {
+                            return [2 /*return*/];
+                        }
+                        if (!response[0].propStat[0].properties) {
+                            return [2 /*return*/];
+                        }
+                        if (!response[0].propStat[0].properties[TAG_DISPLAY_NAME]) {
+                            return [2 /*return*/];
+                        }
+                        tagName = response[0].propStat[0].properties[TAG_DISPLAY_NAME];
+                        return [2 /*return*/, new tag_1.Tag(tagId, tagName)];
+                    case 2:
+                        err_2 = _a.sent();
+                        console.error(err_2);
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
+        this.getAllTags = function () { return __awaiter(_this, void 0, void 0, function () {
+            var resp, result;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.callPropFind("/systemtags/", [])];
+                    case 1:
+                        resp = _a.sent();
+                        result = [];
+                        return [4 /*yield*/, Promise.all(resp.map(function (tagProp) { return __awaiter(_this, void 0, void 0, function () {
+                                var tagId, _a, _b;
+                                return __generator(this, function (_c) {
+                                    switch (_c.label) {
+                                        case 0:
+                                            tagId = this.parseIdFromLocation(tagProp.href);
+                                            if (!(tagId !== "systemtags")) return [3 /*break*/, 2];
+                                            _b = (_a = result).push;
+                                            return [4 /*yield*/, this.getTag(this.parseIdFromLocation(tagProp.href))];
+                                        case 1:
+                                            _b.apply(_a, [_c.sent()]);
+                                            _c.label = 2;
+                                        case 2: return [2 /*return*/];
+                                    }
+                                });
+                            }); }))];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, result];
+                }
+            });
+        }); };
+        this.deleteTag = function (tag) { return __awaiter(_this, void 0, void 0, function () {
+            var response, err_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.connection.request({
+                                method: "DELETE",
+                                url: "/systemtags/" + tag.id
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, true];
+                    case 2:
+                        err_3 = _a.sent();
+                        return [2 /*return*/, false];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        }); };
         this.parseIdFromLocation = function (url) {
-            var queryPos = url.indexOf('?');
+            var queryPos = url.indexOf("?");
             var cleanUrl = url;
             if (queryPos > 0) {
                 cleanUrl = url.substr(0, queryPos);
             }
-            var parts = url.split('/');
+            var parts = url.split("/");
             var result;
             do {
                 result = parts[parts.length - 1];
@@ -243,7 +352,7 @@ var PropertiesClient = /** @class */ (function () {
         };
         var auth = {
             username: username,
-            password: password,
+            password: password
         };
         var config = {
             auth: auth,

@@ -30,7 +30,7 @@ export declare class NextcloudClient extends NextcloudClientProperties implement
     getCreatorByFileId: typeof getCreatorByFileId;
     getCreatorByPath: typeof getCreatorByPath;
     activities: {
-        get: (fileId: string | number, sort?: "desc" | "asc", limit?: number, sinceActivityId?: number) => Promise<import("./types").OcsActivity[]>;
+        get: (fileId: string | number, sort?: "asc" | "desc", limit?: number, sinceActivityId?: number) => Promise<import("./types").OcsActivity[]>;
     };
     users: {
         removeSubAdminFromGroup: (userId: string, groupId: string) => Promise<boolean>;

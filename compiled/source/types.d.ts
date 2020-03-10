@@ -1,11 +1,11 @@
 /// <reference types="node" />
-import { OcsConnection } from './ocs/ocs-connection';
-import * as Stream from 'stream';
-import * as Webdav from 'webdav-client';
-import { Tag } from './properties/tag';
-export { Tag } from './properties/tag';
-import { OcsSharePermissions, OcsEditUserField, OcsShareType, OcsActivity, OcsNewUser, OcsShare, OcsUser } from './ocs/types';
-export * from './ocs/types';
+import { OcsConnection } from "./ocs/ocs-connection";
+import * as Stream from "stream";
+import * as Webdav from "webdav-client";
+import { Tag } from "./properties/tag";
+export { Tag } from "./properties/tag";
+import { OcsSharePermissions, OcsEditUserField, OcsShareType, OcsActivity, OcsNewUser, OcsShare, OcsUser } from "./ocs/types";
+export * from "./ocs/types";
 export declare type AsyncFunction = (...parameters: any[]) => Promise<any>;
 export declare type FileDetails = Webdav.ConnectionReaddirComplexResult;
 export declare type FileDetailProperty = Webdav.ConnectionReaddirProperty;
@@ -15,6 +15,13 @@ export declare class NextcloudClientProperties {
     ocsConnection: OcsConnection;
     username: string;
     url: string;
+}
+export interface IPropertiesClient {
+    getFileId(path: string): Promise<string | void>;
+    createTag(tagName: string): Promise<Tag>;
+    addTag(fileID: number | string, tag: Tag): Promise<void>;
+    removeTag(fileId: number | string, tag: Tag): Promise<void>;
+    getTags(fileId: number | string, tag: Tag): Promise<Tag[]>;
 }
 export interface NextcloudClientInterface extends NextcloudClientProperties {
     getFolderFileDetails(path: string, extraProperties?: FileDetailProperty[]): Promise<FileDetails[]>;
@@ -37,15 +44,9 @@ export interface NextcloudClientInterface extends NextcloudClientProperties {
     get(path: string): Promise<string | Buffer>;
     getCreatorByFileId(fileId: number | string): Promise<string>;
     getCreatorByPath(path: string): Promise<string>;
-    properties: {
-        getFileId(path: string): Promise<string>;
-        createTag(tagName: string): Promise<Tag>;
-        addTag(fileID: number | string, tag: Tag): Promise<void>;
-        removeTag(fileId: number | string, tag: Tag): Promise<void>;
-        getTags(fileId: number | string, tag: Tag): Promise<Tag[]>;
-    };
+    properties: IPropertiesClient;
     activities: {
-        get: (fileId: number | string, sort?: 'asc' | 'desc', limit?: number, sinceActivityId?: number) => Promise<OcsActivity[]>;
+        get: (fileId: number | string, sort?: "asc" | "desc", limit?: number, sinceActivityId?: number) => Promise<OcsActivity[]>;
     };
     users: {
         removeSubAdminFromGroup: (userId: string, groupId: string) => Promise<boolean>;
