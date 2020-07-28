@@ -1,4 +1,4 @@
-name: workflow
+name: TSLint
 on: [push]
 jobs:
   TSLint:
